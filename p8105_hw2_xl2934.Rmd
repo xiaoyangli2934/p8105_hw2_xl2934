@@ -1,0 +1,67 @@
+---
+title: "p8105_hw2_xl2934"
+author: "Xiaoyang Li"
+date: "2019/9/27"
+output: github_document
+---
+```{r set up, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+library(tidyverse)
+library(readxl)
+```
+
+
+# Problem 1
+
+## Read and clean the Mr. Trash Wheel sheet
+
+```{r}
+trashwheel = 
+  read_excel(
+    path = "./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx",
+    range = "A2:N52",
+    sheet = "Professor Trash Wheel"
+    ) %>% 
+  janitor::clean_names() %>% 
+  drop_na(dumpster) %>% 
+  mutate(sports_balls = as.integer(sports_balls))
+trashwheel
+```
+
+## Read and clean precipitation data from 2017 and 2018
+```{r}
+prec_2018 = 
+  read_excel(
+    path = "./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
+    sheet = "2018 Precipitation",
+    range = "A2:B14") %>% 
+  select(-Month) %>% 
+  mutate(
+    year = "2018", 
+    month = month.name)
+
+prec_2017 = 
+  read_excel(
+    path = "./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
+    sheet = "2017 Precipitation",
+    range = "A2:B14") %>% 
+  select(-Month) %>% 
+  mutate(
+    year = "2017",
+    month = month.name)
+
+prec = bind_rows(prec_2017, prec_2018) %>% 
+  janitor::clean_names() %>% 
+  drop_na(total)
+
+```
+
+## Write about data
+
+For `trashwheel`, there are `r nrow(trashwheel)` observations after  omiting non-data rows and non dumpster-specific rows. 
+
+For `prec`, there are `r nrow(prec)` observations after  omiting NAs. The total precipitation in 2018 is `r filter(prec, year == 2018) %>% pull(total) %>% sum()`. The median number of sports balls in a dumpster in 2017 is `r filter(trashwheel, year == 2017) %>% pull(sports_balls) %>% median()`.
+
+But how to choose key variables???
+
