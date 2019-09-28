@@ -128,3 +128,49 @@ For `snp`, It contain`r colnames(snp)`.
 For `unemployment`, It contain`r colnames(unemployment)`.
 For the resulting dataset, `pol_snp_unemploy`, there are `r nrow(pol_snp_unemploy)` observations and `r ncol(pol_snp_unemploy)` variables. This dataset record from `r min(pull(pol_snp_unemploy, year))` to `r max(pull(pol_snp_unemploy, year))`. The key variables used to merge different dataset is `year` and `month`.
 
+# Problem 3
+## Load and tidy the data
+```{r}
+names = read_csv(file = "./data/Popular_Baby_Names.csv") %>% 
+  janitor::clean_names() %>% 
+  distinct() %>% 
+  mutate(ethnicity = recode(ethnicity, 
+                            "ASIAN AND PACI" = "ASIAN AND PACIFIC ISLANDER", 
+                            "BLACK NON HISP" = "BLACK NON HISPANIC", 
+                            "WHITE NON HISP" = "WHITE NON HISPANIC"),
+         childs_first_name = str_to_title(childs_first_name))
+
+```
+
+## produce new tables of "Olivia" and most popular male name
+```{r}
+pop_olivia = filter(names, childs_first_name == "Olivia", gender == "FEMALE") %>% 
+  select(year_of_birth, ethnicity, rank) %>% 
+  pivot_wider(
+    names_from = "ethnicity",
+    values_from = "rank"
+  )
+
+pop_male = filter(names, gender == "MALE", rank == 1) %>% 
+  select(year_of_birth, ethnicity, childs_first_name)%>% 
+  pivot_wider(
+    names_from = "ethnicity",
+    values_from = "childs_first_name"
+  )
+
+```
+
+## produce a scatter plot for male, white non-hispanic children born in 2016
+```{r}
+
+scatter_samp = filter(names, 
+                      gender == "MALE", 
+                      ethnicity == "WHITE NON HISPANIC", 
+                      year_of_birth == 2016) %>% 
+  select(childs_first_name, rank)
+
+ggplot(scatter_samp, aes(x = rank, y = childs_first_name)) + 
+  geom_point()
+
+```
+
