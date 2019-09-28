@@ -36,32 +36,95 @@ prec_2018 =
     path = "./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
     sheet = "2018 Precipitation",
     range = "A2:B14") %>% 
-  select(-Month) %>% 
   mutate(
-    year = "2018", 
-    month = month.name)
+    year = "2018")
 
 prec_2017 = 
   read_excel(
     path = "./data/HealthyHarborWaterWheelTotals2018-7-28.xlsx", 
     sheet = "2017 Precipitation",
     range = "A2:B14") %>% 
-  select(-Month) %>% 
   mutate(
-    year = "2017",
-    month = month.name)
+    year = "2017")
 
 prec = bind_rows(prec_2017, prec_2018) %>% 
-  janitor::clean_names() %>% 
-  drop_na(total)
-
+  janitor::clean_names() 
+prec = mutate(prec, month = month.name[pull(prec, month)])
 ```
 
 ## Write about data
 
-For `trashwheel`, there are `r nrow(trashwheel)` observations after  omiting non-data rows and non dumpster-specific rows. 
+For `trashwheel`, there are `r nrow(trashwheel)` observations after  omiting non-data rows and non dumpster-specific rows. The median number of sports balls in a dumpster in 2017 is `r filter(trashwheel, year == 2017) %>% pull(sports_balls) %>% median()`. In this dataset, `dumpster` is key variable as far as I am concerned. It contain the unique value in this dataset so that it can help mark every observation. Also, it map to unique date, which make it possible to merge this dataset to others.
 
-For `prec`, there are `r nrow(prec)` observations after  omiting NAs. The total precipitation in 2018 is `r filter(prec, year == 2018) %>% pull(total) %>% sum()`. The median number of sports balls in a dumpster in 2017 is `r filter(trashwheel, year == 2017) %>% pull(sports_balls) %>% median()`.
+For `prec`, there are `r nrow(prec)` observations after  omiting NAs. The total precipitation in 2018 is `r filter(prec, year == 2018) %>% pull(total) %>% sum()`. The key variable in this dataset is `total`, which represent the preciptation in every month.
 
-But how to choose key variables???
+
+# Problem 2
+## clean the data in pols-month.csv.
+```{r}
+pols_month = read_csv(file = "./data/pols-month.csv") %>% 
+  separate(mon, c("year", "month", "day")) %>% 
+  mutate(
+    year = as.numeric(year), 
+    month = as.numeric(month)) 
+  
+pols_month = mutate(pols_month, month = month.name[pull(pols_month, month)]) %>% 
+  pivot_longer( 
+    c("prez_gop", "prez_dem"), 
+    names_to = "president", 
+    names_prefix = "prez_") %>% 
+  select(-value, -day)
+pols_month
+```
+## clean the data in snp.csv 
+```{r}
+snp = read_csv(file = "./data/snp.csv") %>% 
+  separate(date, c("month", "day", "year")) %>% 
+  mutate(
+    month = as.numeric(month), 
+    day = as.numeric(day), 
+    year = as.numeric(year)
+    ) %>% 
+  arrange(year, month) %>% 
+  select( year, month, everything(), -day)
+
+snp = mutate(snp, month = month.name[pull(snp, month)])
+snp
+```
+
+## join the datasets
+```{r}
+pol_snp = left_join(pols_month, snp, by = c("year", "month"))
+
+unemployment = read_csv(file = "./data/unemployment.csv") %>% 
+  rename(
+    "year" = "Year",
+    "January" = "Jan",
+    "February" = "Feb",
+    "March" = "Mar",
+    "April" = "Apr",
+    "June" = "Jun",
+    "July" = "Jul",
+    "August" = "Aug",
+    "September" = "Sep",
+    "October" = "Oct",
+    "November" = "Nov",
+    "December" = "Dec"
+    ) %>% 
+  pivot_longer(
+    January:December,
+    names_to = "month",
+    values_to = "umemploy_%"
+  ) 
+  
+pol_snp_unemploy = left_join(pol_snp, unemployment, by = c("year", "month"))
+summary(pol_snp_unemploy)
+str(pol_snp_unemploy)
+```
+
+## write about datasets
+For `pols_month`, It contain `r colnames(pols_month)`.
+For `snp`, It contain`r colnames(snp)`.
+For `unemployment`, It contain`r colnames(unemployment)`.
+For the resulting dataset, `pol_snp_unemploy`, there are `r nrow(pol_snp_unemploy)` observations and `r ncol(pol_snp_unemploy)` variables. This dataset record from `r min(pull(pol_snp_unemploy, year))` to `r max(pull(pol_snp_unemploy, year))`. The key variables used to merge different dataset is `year` and `month`.
 
