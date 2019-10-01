@@ -1,4 +1,4 @@
----
+ ---
 title: "p8105_hw2_xl2934"
 author: "Xiaoyang Li"
 date: "2019/9/27"
@@ -118,8 +118,6 @@ unemployment = read_csv(file = "./data/unemployment.csv") %>%
   ) 
   
 pol_snp_unemploy = left_join(pol_snp, unemployment, by = c("year", "month"))
-summary(pol_snp_unemploy)
-str(pol_snp_unemploy)
 ```
 
 ## write about datasets
@@ -161,7 +159,7 @@ pop_male = filter(names, gender == "MALE", rank == 1) %>%
 ```
 
 ## produce a scatter plot for male, white non-hispanic children born in 2016
-```{r}
+```{r fig.height=35}
 
 scatter_samp = filter(names, 
                       gender == "MALE", 
@@ -169,8 +167,11 @@ scatter_samp = filter(names,
                       year_of_birth == 2016) %>% 
   select(childs_first_name, rank)
 
+
+
 ggplot(scatter_samp, aes(x = rank, y = childs_first_name)) + 
   geom_point()
+
 
 ```
 
