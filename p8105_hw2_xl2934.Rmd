@@ -167,8 +167,6 @@ scatter_samp = filter(names,
                       year_of_birth == 2016) %>% 
   select(childs_first_name, rank)
 
-
-
 ggplot(scatter_samp, aes(x = rank, y = childs_first_name)) + 
   geom_point()
 
